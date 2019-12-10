@@ -1,0 +1,31 @@
+{
+  "name": "relavant",
+  "version": "1.0.0",
+  "description": "Aggregator of the current status of the future of the web",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "arweave",
+    "web3",
+    "blockchain"
+  ],
+  "author": "Miguel Angel Gordian",
+  "license": "MIT",
+  "dependencies": {
+    "@hapi/hapi": "^18.4.0",
+    "arweave": "^1.6.0",
+    "axios": "^0.19.0",
+    "cron": "^1.7.2",
+    "dompurify": "^2.0.7",
+    "jsdom": "^15.2.1",
+    "mongodb": "^3.3.5",
+    "natural": "^0.6.3",
+    "readability-nodejs": "^0.0.2",
+    "rss-parser": "^3.7.3",
+    "sentiment": "^5.0.2",
+    "url-parse": "^1.4.7",
+    "yargs": "^15.0.2"
+  }
+}
