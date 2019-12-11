@@ -17,7 +17,7 @@ const getLastEntry = (feed) => {
 };
 
 const getEntriesSince = (feed, date) => {
-  return feed.items.filter(item => new Date(item.pubDate) >= date);
+  return feed.items.filter(item => new Date(item.pubDate) > date);
 };
 
 
@@ -71,3 +71,8 @@ if (require.main === module) {
     })
   }
 }
+
+module.exports = {
+  parseRSSFeed,
+  getEntriesSince
+};

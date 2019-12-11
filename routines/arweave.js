@@ -17,8 +17,8 @@ async function dispatchTX(client, data, tags, wallet) {
 
   // Sign and dispatch the tx
   await client.transactions.sign(tx, wallet);
-  const response = await client.transactions.post(tx);
-
+  // const response = await client.transactions.post(tx);
+  let response = {}
   let output = `Transaction ${tx.get('id')} dispatched with response: ${response.status}.`;
   console.log(output);
 
@@ -30,4 +30,10 @@ async function dispatchTX(client, data, tags, wallet) {
 
 const isTxSynced = async (client, tx) => {
   return await client.transactions.getStatus(tx);
+};
+
+module.exports = {
+  initArweave,
+  dispatchTX,
+  isTxSynced
 };
