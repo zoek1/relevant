@@ -1,9 +1,14 @@
 const Arweave = require('arweave/node');
 
 const initArweave = (config) => {
+  console.log({
+    host: config.hostname,
+    port: config.port || 443,
+    protocol: config.protocol.replace(':', '') || 'https'
+  })
   return Arweave.init({
     host: config.hostname,
-    port: config || 443,
+    port: config.port || 443,
     protocol: config.protocol.replace(':', '') || 'https'
   })
 };

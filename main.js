@@ -57,7 +57,7 @@ let db;
 
 
 const HOURLY = '0 0 1 * * *';
-const MINUTES = '*/50 * * * * *';
+const MINUTES = '0 */3 * * * *';
 
 const getSiteDomain = (site_raw) => {
   console.log(site_raw)
@@ -161,8 +161,9 @@ const start_jobs = async () => {
     if (last !== undefined && last !== null && last !== '') {
       console.log(`== Active Tx: _id: ${last._id} td: ${last.tx}`);
       let synced = await isTxSynced(arweave, last.tx);
-      console.log(`Transaction status: ${synced.status} - ${synced.confirmedn}`);
-      if (synced.confirmed === true) {
+      console.log(synced.confirmed)
+      console.log(`Transaction status: ${synced.status} - ${synced.confirmed}`);
+      if (typeof  synced.confirmed === 'object' && synced.confirmed.number_of_confirmations > 20) {
         console.log(`Liberando: ${last.tx}`);
         collection.update({_id: last._id}, {published: true})
       }
@@ -176,7 +177,7 @@ const start_jobs = async () => {
       console.log(`${next._id} : ${next.item.title}`);
 
       let {response, tx} = await dispatchTX(arweave, buildTxData(next), buildTxTags(next), wallet)
-      console.log(response)
+      console.log(response.data)
       if (response.status === 200) {
         console.log(`New pending transaction: ${tx.get('id')}`);
         collection.update({_id: next._id}, {$set: {'tx': tx.get('id'), published: false }})
