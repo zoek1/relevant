@@ -57,7 +57,7 @@ let db;
 
 
 const HOURLY = '0 0 1 * * *';
-const MINUTES = '0 * * * * *';
+const MINUTES = '*/50 * * * * *';
 
 const getSiteDomain = (site_raw) => {
   console.log(site_raw)
@@ -119,7 +119,28 @@ const buildTxData = (next) => {
   return next.item;
 };
 const buildTxTags = (next) => {
-  return {...next.site, createdBy: 'Relevant',};
+  let tags = {
+    title: next.site.title,
+    link: next.site.link,
+    description: next.site.description,
+    url: next.feedUrl,
+    date: next.pubDateObj.toISOString().slice(0,10),
+    createdBy: 'Relevant',
+    'Content-Type': 'application/json',
+    env: 'test'
+  };
+
+  if (next.item.categories !== null && next.item.categories !== undefined &&
+      next.item.categories.length > 0) {
+    for (let i=0; i<5; i++) {
+      if (next.item.categories[i] !== undefined && next.item.categories[i] !== null) {
+        tags[`category_${i}`] = next.item.categories[i];
+      }
+    }
+  }
+
+
+  return tags;
 };
 
 const start_jobs = async () => {
@@ -138,24 +159,27 @@ const start_jobs = async () => {
     console.log(`== Check sincronization`);
     let last = await collection.findOne({published: false, tx: {$ne: null}});
     if (last !== undefined && last !== null && last !== '') {
-      console.log(`== Active Tx: ${typeof last}`);
-      let synced = await isTxSynced(last.tx);
-      if (synced === 200) {
+      console.log(`== Active Tx: _id: ${last._id} td: ${last.tx}`);
+      let synced = await isTxSynced(arweave, last.tx);
+      console.log(`Transaction status: ${synced.status} - ${synced.confirmedn}`);
+      if (synced.confirmed === true) {
         console.log(`Liberando: ${last.tx}`);
         collection.update({_id: last._id}, {published: true})
       }
     } else {
       console.log(`== Select next entry`);
       let next = await db.collection('entries').findOne({tx: null});
-      console.log(next)
-      if (last === undefined || last === null || last === '') {
+      if (next === undefined || next === null || next === '') {
         console.log('--- No task exists')
-        return;
+	      return;
       }
-      let {response, tx} = dispatchTX(client, buildTxData(next), buildTxTags(next), wallet)
+      console.log(`${next._id} : ${next.item.title}`);
+
+      let {response, tx} = await dispatchTX(arweave, buildTxData(next), buildTxTags(next), wallet)
+      console.log(response)
       if (response.status === 200) {
         console.log(`New pending transaction: ${tx.get('id')}`);
-        collection.update({_id: last._id}, {$set: {'tx': tx.get('id'), published: false }})
+        collection.update({_id: next._id}, {$set: {'tx': tx.get('id'), published: false }})
       }
     }
   });
@@ -214,7 +238,7 @@ const init = async () => {
           try {
             let feed = await parseRSSFeed(site_raw);
           } catch (e) {
-            return Boom.badData('Sorry the site could be parsed');
+            return Boom.badData('Sorry the site couldn\'t be parsed');
           }
           const new_site = await sites.insertOne(dominsObj);
           return {

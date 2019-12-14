@@ -35,6 +35,8 @@
     <md-app>
         <md-app-toolbar class="md-primary">
             <span class="md-title">My Title</span>
+
+            <p> Condiser donate AR to <%= address %> (<%= balance%>) to make this project sustainable</p>
         </md-app-toolbar>
 
 
@@ -64,7 +66,6 @@
                     <md-button type="submit" class="md-raised md-primary" :disabled="sending">Save your site</md-button>
                 </md-card-actions>
             </md-card>
-
             <md-snackbar :md-active.sync="siteSaved">Status: {{ message }}</md-snackbar>
         </form>
     </div>

@@ -9,7 +9,7 @@ const initArweave = (config) => {
 };
 
 async function dispatchTX(client, data, tags, wallet) {
-  const tx = await client.createTransaction({data}, wallet);
+  const tx = await client.createTransaction({data: JSON.stringify(data)}, wallet);
 
   Object.keys(tags).map(key => {
     tx.addTag(key, tags[key]);
@@ -17,8 +17,8 @@ async function dispatchTX(client, data, tags, wallet) {
 
   // Sign and dispatch the tx
   await client.transactions.sign(tx, wallet);
-  // const response = await client.transactions.post(tx);
-  let response = {}
+  const response = await client.transactions.post(tx);
+  // let response = {status: 200}
   let output = `Transaction ${tx.get('id')} dispatched with response: ${response.status}.`;
   console.log(output);
 
