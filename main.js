@@ -8,6 +8,7 @@ const Boom = require('@hapi/boom')
 
 const {initArweave, isTxSynced, dispatchTX} = require('./routines/arweave');
 const {parseRSSFeed, getEntriesSince} = require('./routines/feeds');
+const {sentimentRate} = require('./routines/analysis');
 
 const argv = require('yargs')
   .usage('Usage: $0 <command> [options]')
@@ -77,13 +78,15 @@ const getSiteDomain = (site_raw) => {
 };
 
 
-const build_document = (feed, entry, url) => {
+const build_document = async (feed, entry, url) => {
+  const sentiment_rate = await sentimentRate(entry.link || entry.url);
   return {
     site: {
       title: feed.title,
       link: feed.link,
       date: feed.pubDate,
-      description: feed.description
+      description: feed.description,
+      sentiment_rate: sentiment_rate
     },
     item: entry,
     feedUrl: url,
@@ -101,10 +104,10 @@ const harvestSite = async (site) => {
       console.log(`Items: ${feed.items.length}`);
       let last = collection.find({'feedUrl': site.feedUrl}).sort({pubDateObj: -1}).limit(1).toArray((err, last) => {
         let entries = last.length === 1 ? getEntriesSince(feed, last[0].pubDateObj) : feed.items;
-        entries.forEach(e => {
+        entries.forEach(async (e) => {
           console.log(`[${e.pubDate}] ${e.title} `);
           // console.log(build_document(feed, e))
-          collection.insertOne(build_document(feed, e, site.feedUrl))
+          await collection.insertOne(await build_document(feed, e, site.feedUrl))
         });
         return entries.length;
       });
@@ -122,6 +125,7 @@ const buildTxTags = (next) => {
   let tags = {
     title: next.site.title,
     link: next.site.link,
+    sentiment_rate: next.site.sentiment_rate,
     description: next.site.description,
     url: next.feedUrl,
     date: next.pubDateObj.toISOString().slice(0,10),
@@ -165,7 +169,7 @@ const start_jobs = async () => {
       console.log(`Transaction status: ${synced.status} - ${synced.confirmed}`);
       if (typeof  synced.confirmed === 'object' && synced.confirmed.number_of_confirmations > 25) {
         console.log(`Liberando: ${last.tx}`);
-        collection.update({_id: last._id}, {$set: { published: true })
+        collection.update({_id: last._id}, {$set: { published: true }})
       }
     } else {
       console.log(`== Select next entry`);
@@ -213,6 +217,19 @@ const init = async () => {
         const balance = await arweave.wallets.getBalance(address);
 
         return h.view('index', {address, balance});
+      } catch(e){console.log(e)}
+    }
+  });
+
+  server.route({
+    method: 'GET',
+    path: '/permafeed',
+    handler: async (request, h) => {
+      try {
+        const address = await arweave.wallets.jwkToAddress(wallet);
+        const balance = await arweave.wallets.getBalance(address);
+
+        return h.view('feed', {address, balance});
       } catch(e){console.log(e)}
     }
   });

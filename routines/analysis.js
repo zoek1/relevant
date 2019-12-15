@@ -13,15 +13,35 @@ function onlyUnique(value, index, self) {
   return self.indexOf(value) === index;
 }
 
-( async () => {
+const sentimentRate = async (url) => {
   natural.PorterStemmer.attach();
-  let content = await getContent('https://cointelegraph.com/news/crypto-exchange-btse-eyes-50m-for-exchange-token-sale-on-liquid-network');
+  let content = await getContent(url);
+
+  if (content === null) {
+    return 0;
+  }
 
   var sentiment = new Sentiment();
-  var result = sentiment.analyze(content.textContent);;
+  var result = sentiment.analyze(content.textContent);
 
-  let tokens = content.textContent.tokenizeAndStem()
-  console.log(analyzer.getSentiment(tokens));
-  console.log(analyzer.getSentiment(result.words));
+  return analyzer.getSentiment(result.words);
+};
 
-})();
+module.exports = {
+  sentimentRate
+};
+
+if (require.main === module) {
+  (async () => {
+    natural.PorterStemmer.attach();
+    let content = await getContent('https://cointelegraph.com/news/crypto-exchange-btse-eyes-50m-for-exchange-token-sale-on-liquid-network');
+
+    var sentiment = new Sentiment();
+    var result = sentiment.analyze(content.textContent);
+
+    let tokens = content.textContent.tokenizeAndStem()
+    console.log(analyzer.getSentiment(tokens));
+    console.log(analyzer.getSentiment(result.words));
+
+  })();
+};

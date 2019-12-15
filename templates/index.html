@@ -34,9 +34,23 @@
 <div id="app">
     <md-app>
         <md-app-toolbar class="md-primary">
-            <span class="md-title">My Title</span>
 
-            <p> Condiser donate AR to <%= address %> (<%= balance%>) to make this project sustainable</p>
+            <div class="md-toolbar-row">
+                <div class="md-toolbar-section-start">
+                    <span class="md-title">Relevant - The Permanent Aggregator</span>
+                </div>
+
+                <div class="md-toolbar-section-end">
+                    <a href="/">
+                        <md-button>
+                            <md-icon>add</md-icon>  Add your site
+                        </md-button>
+                    </a>
+                    <a href="/permafeed">
+                        <md-button> <md-icon>rss_feed</md-icon> PermaFeed</md-button></a>
+                </div>
+
+            </div>
         </md-app-toolbar>
 
 
@@ -62,9 +76,12 @@
                 </md-card-content>
 
                 <md-card-actions>
+
                     <span v-if="message">{{ message }}</span>
                     <md-button type="submit" class="md-raised md-primary" :disabled="sending">Save your site</md-button>
+
                 </md-card-actions>
+                <span style="display: block">* Your stories will appear at <a href="/permafeed">/permafeed</a> when they have at least 10 confirmations, so take a coffee in the meantime.</span>
             </md-card>
             <md-snackbar :md-active.sync="siteSaved">Status: {{ message }}</md-snackbar>
         </form>
