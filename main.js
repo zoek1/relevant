@@ -163,9 +163,9 @@ const start_jobs = async () => {
       let synced = await isTxSynced(arweave, last.tx);
       console.log(synced.confirmed)
       console.log(`Transaction status: ${synced.status} - ${synced.confirmed}`);
-      if (typeof  synced.confirmed === 'object' && synced.confirmed.number_of_confirmations > 20) {
+      if (typeof  synced.confirmed === 'object' && synced.confirmed.number_of_confirmations > 25) {
         console.log(`Liberando: ${last.tx}`);
-        collection.update({_id: last._id}, {published: true})
+        collection.update({_id: last._id}, {$set: { published: true })
       }
     } else {
       console.log(`== Select next entry`);
