@@ -57,7 +57,7 @@ let client;
 let db;
 
 
-const HOURLY = '0 0 1 * * *';
+const HOURLY = '0 0 */1 * * *';
 const MINUTES = '0 */3 * * * *';
 
 const getSiteDomain = (site_raw) => {
@@ -131,7 +131,7 @@ const buildTxTags = (next) => {
     date: next.pubDateObj.toISOString().slice(0,10),
     createdBy: 'Relevant',
     'Content-Type': 'application/json',
-    env: 'test'
+    env: 'production'
   };
 
   if (next.item.categories !== null && next.item.categories !== undefined &&
@@ -167,7 +167,7 @@ const start_jobs = async () => {
       let synced = await isTxSynced(arweave, last.tx);
       console.log(synced.confirmed)
       console.log(`Transaction status: ${synced.status} - ${synced.confirmed}`);
-      if (typeof  synced.confirmed === 'object' && synced.confirmed.number_of_confirmations > 25) {
+      if (synced.confirmed !== null && typeof  synced.confirmed === 'object' && synced.confirmed.number_of_confirmations > 10) {
         console.log(`Liberando: ${last.tx}`);
         collection.update({_id: last._id}, {$set: { published: true }})
       }
@@ -178,6 +178,7 @@ const start_jobs = async () => {
         console.log('--- No task exists')
 	      return;
       }
+      console.log(next)
       console.log(`${next._id} : ${next.item.title}`);
 
       let {response, tx} = await dispatchTX(arweave, buildTxData(next), buildTxTags(next), wallet)

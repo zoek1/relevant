@@ -96,7 +96,7 @@
     </div>
 
     <div class="md-layout container md-alignment-top-space-around">
-        <entry v-for="tx in txs" v-bind:rate="setRate" v-bind:query="setQuery" v-bind:key="tx" v-bind:tx="tx"></entry>
+        <entry v-for="tx in txs.slice(0, 26)" v-bind:rate="setRate" v-bind:query="setQuery" v-bind:key="tx" v-bind:tx="tx"></entry>
     </div>
 
     <!-- Your code here -->
@@ -167,7 +167,7 @@
       '        </md-card-header-text>\n' +
       '      </md-card-header>\n' +
       '      <md-card-media v-if="content.enclosure">\n' +
-      '        <img src="content.enclosure.url">\n' +
+      '        <img v-bind:src="content.enclosure.url">\n' +
       '      </md-card-media>' +
       '      <md-card-content>\n' +
       '        {{content.description || content.contentSnippet}}\n' +
@@ -252,7 +252,8 @@
               return;
             }
             if (this.rate === null) this.rate = 0;
-            this.rate += value
+            if (value !== 'NaN')		
+              this.rate += parseInt(value)
         },
       }
     },
