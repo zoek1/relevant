@@ -61,7 +61,7 @@ let db;
 const APP_NAME = 'Relevant';
 const APP_VERSION = '1.0';
 
-const HOURLY = '0 0 1 * * *';
+const HOURLY = '0 0 */1 * * *';
 const MINUTES = '0 */3 * * * *';
 
 const getSiteDomain = (site_raw) => {
@@ -193,7 +193,7 @@ const buildTxTags = (next) => {
     'Site-Title': next.site.title,
     'Copyright': next.site.copyright !== undefined && next.site.copyright !== null && next.site.copyright !== '',
     'Content-Type': 'application/json',
-    'Reading-Time': Math.round(next.stats.minutes)
+    'Reading-Time': Math.round(next.stats.minutes),
   };
 
   if (next.item.categories !== null && next.item.categories !== undefined &&
@@ -229,7 +229,7 @@ const start_jobs = async () => {
       let synced = await isTxSynced(arweave, last.tx);
       console.log(synced.confirmed)
       console.log(`Transaction status: ${synced.status} - ${synced.confirmed}`);
-      if (typeof  synced.confirmed === 'object' && synced.confirmed.number_of_confirmations > 25) {
+      if (synced.confirmed !== null && typeof  synced.confirmed === 'object' && synced.confirmed.number_of_confirmations > 10) {
         console.log(`Liberando: ${last.tx}`);
         collection.update({_id: last._id}, {$set: { published: true }})
       }
@@ -240,6 +240,7 @@ const start_jobs = async () => {
         console.log('--- No task exists')
 	      return;
       }
+      console.log(next)
       console.log(`${next._id} : ${next.item.title}`);
 
       let {response, tx} = await dispatchTX(arweave, buildTxData(next), buildTxTags(next), wallet)
