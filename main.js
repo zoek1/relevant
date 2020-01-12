@@ -5,10 +5,12 @@ const mongo = require('mongodb').MongoClient;
 const CronJob = require('cron').CronJob;
 const crypto = require("crypto");
 const Boom = require('@hapi/boom')
+const readingTime = require('reading-time');
 
 const {initArweave, isTxSynced, dispatchTX} = require('./routines/arweave');
 const {parseRSSFeed, getEntriesSince} = require('./routines/feeds');
 const {sentimentRate} = require('./routines/analysis');
+const {getContentFromBrowser} = require("./routines/content");
 
 const argv = require('yargs')
   .usage('Usage: $0 <command> [options]')
@@ -51,11 +53,13 @@ const wallet = JSON.parse(raw_wallet);
 
 const arweave = initArweave(argv.arweave);
 
-const url = 'mongodb://localhost:27017'
+const url = 'mongodb://localhost:27017';
 
 let client;
 let db;
 
+const APP_NAME = 'Relevant';
+const APP_VERSION = '1.0';
 
 const HOURLY = '0 0 1 * * *';
 const MINUTES = '0 */3 * * * *';
@@ -79,20 +83,48 @@ const getSiteDomain = (site_raw) => {
 
 
 const build_document = async (feed, entry, url) => {
-  const sentiment_rate = await sentimentRate(entry.link || entry.url);
-  return {
+  // TODO: add sentiment analisys
+  let browser = !entry['dc:content'] && !entry['content:encoded'];
+  let lang = feed.language ? feed.language.split('-')[0].toUpperCase() : 'EN'
+  const {sentiment_rate, sentiment_tokens, sentiment_group} = await sentimentRate(entry.link || entry.url, browser, lang);
+
+  let data = {
     site: {
       title: feed.title,
       link: feed.link,
       date: feed.pubDate,
       description: feed.description,
-      sentiment_rate: sentiment_rate
+      sentiment_rate: sentiment_rate,
+      sentiment_group: sentiment_group,
+      copyright: feed.copyright,
+      language: feed.language
+    },
+    stats: {
+     text: 'No estimated',
+     minutes: 0,
+     time: 0,
+     words: 0
     },
     item: entry,
     feedUrl: url,
     pubDateObj: new Date(entry.pubDate),
     published: false, tx: null
   };
+
+  if (browser) {
+    let content = await getContentFromBrowser(entry.guid || entry.link);
+    if (content !== null) {
+      data.item.content = content.content;
+      data.stats = readingTime(content.content)
+    } else {
+      data.item['dc:content'] = ''
+    }
+  } else {
+    data.stats = readingTime(entry['dc:content'] || entry['content:encoded'])
+  }
+  console.log(data)
+
+  return data
 };
 
 const harvestSite = async (site) => {
@@ -102,16 +134,17 @@ const harvestSite = async (site) => {
       console.log(`Title: ${feed.title}`);
       console.log(`Link: ${feed.link}`);
       console.log(`Items: ${feed.items.length}`);
-      let last = collection.find({'feedUrl': site.feedUrl}).sort({pubDateObj: -1}).limit(1).toArray((err, last) => {
+
+      collection.find({'feedUrl': site.feedUrl}).sort({pubDateObj: -1}).limit(1).toArray(async (err, last) => {
         let entries = last.length === 1 ? getEntriesSince(feed, last[0].pubDateObj) : feed.items;
-        entries.forEach(async (e) => {
+        for (let index = 0; index < entries.length; index++) {
+          let e = entries[index];
           console.log(`[${e.pubDate}] ${e.title} `);
-          // console.log(build_document(feed, e))
           await collection.insertOne(await build_document(feed, e, site.feedUrl))
-        });
+
+        }
         return entries.length;
       });
-
     } catch (e) {
       console.log(e);
       return null;
@@ -119,31 +152,60 @@ const harvestSite = async (site) => {
 };
 
 const buildTxData = (next) => {
-  return next.item;
+  console.log(next.item);
+  let item = next.item;
+  return {
+    title: item.title,
+    link: item.link,
+    guid: item.guid,
+    publicationDate: item['isoDate'],
+    author: (item['dc:creator'] || item['creator'].trim() || '').trim(),
+    description: (item['description'] || item['contentSnippet'] || '').trim(),
+    content: (item['content:encoded'] || item['content:encoded'] || item.content).trim(), // Check other content tags
+    categories: [],
+    language: next.site.language ? next.site.language.split('-')[0].toUpperCase() : 'EN',
+    site: {
+      siteDescription: next.site.description,
+      siteTitle: next.site.title,
+      copyright: next.site.copyright || null
+    },
+    readingStats: next.stats,
+    media: item.enclosure || {},
+    sentiment: {
+      rate: next.site.sentiment_rate,
+      group: next.site.sentiment_group, // Implement this
+    },
+
+  };
 };
 const buildTxTags = (next) => {
   let tags = {
-    title: next.site.title,
-    link: next.site.link,
-    sentiment_rate: next.site.sentiment_rate,
-    description: next.site.description,
-    url: next.feedUrl,
-    date: next.pubDateObj.toISOString().slice(0,10),
-    createdBy: 'Relevant',
+    'Feed-Name': APP_NAME,
+    'Feed-Version': APP_VERSION,
+    'Sentiment-Rate': Math.round(next.site.sentiment_rate),
+    'Sentiment-Group': next.site.sentiment_group,
+    'Publication-Date': next.pubDateObj.toISOString().slice(0,10),
+    'Publication-Time': next.pubDateObj.toISOString().slice(11,16),
+    'Publication-Feed': next.feedUrl,
+    'Publication-URL': next.item.guid || next.item.link,
+    'Publication-Lang': next.site.language ? next.site.language.split('-')[0].toUpperCase() : 'EN',
+    'Publication-Author': (next.item['dc:creator'] || next.item['creator'] || '').trim(),
+    'Site-Title': next.site.title,
+    'Copyright': next.site.copyright !== undefined && next.site.copyright !== null && next.site.copyright !== '',
     'Content-Type': 'application/json',
-    env: 'test'
+    'Reading-Time': Math.round(next.stats.minutes)
   };
 
   if (next.item.categories !== null && next.item.categories !== undefined &&
       next.item.categories.length > 0) {
     for (let i=0; i<5; i++) {
       if (next.item.categories[i] !== undefined && next.item.categories[i] !== null) {
-        tags[`category_${i}`] = next.item.categories[i];
+        tags[`Category_${i}`] = next.item.categories[i];
       }
     }
   }
 
-
+  console.log(tags)
   return tags;
 };
 

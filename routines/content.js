@@ -3,6 +3,40 @@ const Readability = require('readability-nodejs').Readability;
 const createDOMPurify = require('dompurify');
 const axios = require('axios');
 
+const puppeteer = require('puppeteer');
+const fs = require('fs');
+const readabilityJsStr = fs.readFileSync('node_modules/readability/Readability.js', {encoding: 'utf-8'})
+
+function executor() {
+  return new Readability(document).parse();
+}
+
+async function getContentFromBrowser(site){
+  // based on this snippet https://gist.github.com/MrOrz/fb48f27f0f21846d0df521728fda19ce
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+
+  try {
+    await page.goto(site);
+  } catch(e) {
+    console.error(e);
+    return null;
+  }
+
+  const resultArticle = await page.evaluate(`
+    (function(){
+      ${readabilityJsStr}
+      ${executor}
+      return executor();
+    }())
+  `);
+
+  browser.close();
+
+  return resultArticle;
+}
+
+
 const generateJSONContent = (url, raw_content) => {
     let window = new JSDOM('').window;
     const DOMPurify = createDOMPurify(window);
@@ -34,12 +68,13 @@ if (require.main === module) {
     })
     .help('help')
     .argv;
-
+  console.log(argv)
   if (argv.url) {
-    getContent(argv.url).then((r) => r && console.log(r.textContent))
+    getContentFromBrowser(argv.url).then((r) => r && console.log(r.textContent))
   }
 }
 
 module.exports = {
-    getContent
+  getContent,
+  getContentFromBrowser
 };

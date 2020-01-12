@@ -26,9 +26,13 @@
     "jsdom": "^15.2.1",
     "mongodb": "^3.3.5",
     "natural": "^0.6.3",
+    "puppeteer": "^2.0.0",
+    "readability": "https://github.com/mozilla/readability",
     "readability-nodejs": "^0.0.2",
+    "reading-time": "^1.2.0",
     "rss-parser": "^3.7.3",
     "sentiment": "^5.0.2",
+    "stopword": "^0.3.4",
     "url-parse": "^1.4.7",
     "yargs": "^15.0.2"
   }
