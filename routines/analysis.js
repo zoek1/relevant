@@ -36,47 +36,55 @@ const sentimentRate = async (url, browser, lang) => {
     return 0;
   }
 
-  let _analyzer;
-  let _tokenizer;
+  try {
+    let _analyzer;
+    let _tokenizer;
 
-  if (lang === 'ES') {
-    _analyzer = new Analyzer("Spanish", stemmer, "afinn");
-    _tokenizer = (text) => {
-      return sw.removeStopwords(text.split(' '), sw.es)
+    if (lang === 'ES') {
+      _analyzer = new Analyzer("Spanish", stemmer, "afinn");
+      _tokenizer = (text) => {
+        return sw.removeStopwords(text.split(' '), sw.es)
+      }
     }
-  }
-  if (lang === 'FR') {
-    _analyzer = new Analyzer("French", stemmer, "pattern");
-    _tokenizer = (text) => {
-      return sw.removeStopwords(text.split(' '), sw.fr)
+    if (lang === 'FR') {
+      _analyzer = new Analyzer("French", stemmer, "pattern");
+      _tokenizer = (text) => {
+        return sw.removeStopwords(text.split(' '), sw.fr)
+      }
     }
-  }
-  if (lang === 'IT') {
-    _analyzer = new Analyzer("Italian", stemmer, "pattern");
-    _tokenizer = (text) => {
-      return sw.removeStopwords(text.split(' '), sw.it)
+    if (lang === 'IT') {
+      _analyzer = new Analyzer("Italian", stemmer, "pattern");
+      _tokenizer = (text) => {
+        return sw.removeStopwords(text.split(' '), sw.it)
+      }
     }
-  }
-  if (lang === 'EN' || !lang) {
-    _analyzer = new Analyzer("English", stemmer, "afinn");
-    _tokenizer = (text) => {
-      return  sw.removeStopwords(text.split(' '), sw.en)
+    if (lang === 'EN' || !lang) {
+      _analyzer = new Analyzer("English", stemmer, "afinn");
+      _tokenizer = (text) => {
+        return  sw.removeStopwords(text.split(' '), sw.en)
+      }
     }
-  }
 
-  sentences = new natural.SentenceTokenizer().tokenize(content.textContent);
+    sentences = new natural.SentenceTokenizer().tokenize(content.textContent);
 
-  var accum = 0;
-  for (let index=0; index < sentences.length; index++) {
-    var result = _tokenizer(sentences[index]);
-    accum += _analyzer.getSentiment(result.words || result);
-    // console.log(`${accum}: ${result}`)
-  }
-  let sentiment_rate = accum / sentences.length;
-  return {
-    sentiment_rate: sentiment_rate,
-    sentiment_tokens: [],
-    sentiment_group: sentimentGroup(sentiment_rate),
+    var accum = 0;
+    for (let index=0; index < sentences.length; index++) {
+      var result = _tokenizer(sentences[index]);
+      accum += _analyzer.getSentiment(result.words || result);
+      // console.log(`${accum}: ${result}`)
+    }
+    let sentiment_rate = accum / sentences.length;
+    return {
+      sentiment_rate: sentiment_rate,
+      sentiment_tokens: [],
+      sentiment_group: sentimentGroup(sentiment_rate),
+    }
+  } catch (e) {
+    return {
+      sentiment_rate: 0,
+      sentiment_tokens: [],
+      sentiment_group: 'Unknown',
+    }
   }
 };
 

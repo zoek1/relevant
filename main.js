@@ -6,6 +6,7 @@ const CronJob = require('cron').CronJob;
 const crypto = require("crypto");
 const Boom = require('@hapi/boom')
 const readingTime = require('reading-time');
+const axios = require('axios');
 
 const {initArweave, isTxSynced, dispatchTX} = require('./routines/arweave');
 const {parseRSSFeed, getEntriesSince} = require('./routines/feeds');
@@ -111,6 +112,11 @@ const build_document = async (feed, entry, url) => {
     published: false, tx: null
   };
 
+  //if (!!entry.enclosure) {
+  //  let image = await axios.get(entry.enclosure.url, {responseType: 'arraybuffer'});
+  //  data.item.enclosure.data = `data:${entry.enclosure.type};base64, ` + Buffer.from(image.data).toString('base64');
+  //}
+
   if (browser) {
     let content = await getContentFromBrowser(entry.guid || entry.link);
     if (content !== null) {
@@ -122,7 +128,7 @@ const build_document = async (feed, entry, url) => {
   } else {
     data.stats = readingTime(entry['dc:content'] || entry['content:encoded'])
   }
-  console.log(data)
+  // console.log(data)
 
   return data
 };
@@ -161,21 +167,21 @@ const buildTxData = (next) => {
     publicationDate: item['isoDate'],
     author: (item['dc:creator'] || item['creator'].trim() || '').trim(),
     description: (item['description'] || item['contentSnippet'] || '').trim(),
-    content: (item['content:encoded'] || item['content:encoded'] || item.content).trim(), // Check other content tags
-    categories: [],
+    categories: next.item.categories || [],
     language: next.site.language ? next.site.language.split('-')[0].toUpperCase() : 'EN',
     site: {
-      siteDescription: next.site.description,
-      siteTitle: next.site.title,
-      copyright: next.site.copyright || null
+      description: next.site.description,
+      title: next.site.title,
+      copyright: next.site.copyright || ""
     },
     readingStats: next.stats,
-    media: item.enclosure || {},
+
     sentiment: {
       rate: next.site.sentiment_rate,
       group: next.site.sentiment_group, // Implement this
     },
-
+    content: (item['content:encoded'] || item['content:encoded'] || item.content).trim(), // Check other content tags
+    media: item.enclosure || {},
   };
 };
 const buildTxTags = (next) => {
@@ -229,7 +235,7 @@ const start_jobs = async () => {
       let synced = await isTxSynced(arweave, last.tx);
       console.log(synced.confirmed)
       console.log(`Transaction status: ${synced.status} - ${synced.confirmed}`);
-      if (synced.confirmed !== null && typeof  synced.confirmed === 'object' && synced.confirmed.number_of_confirmations > 10) {
+      if (synced.confirmed !== null && typeof  synced.confirmed === 'object' && synced.confirmed.number_of_confirmations > 6) {
         console.log(`Liberando: ${last.tx}`);
         collection.update({_id: last._id}, {$set: { published: true }})
       }

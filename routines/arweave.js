@@ -13,8 +13,25 @@ const initArweave = (config) => {
   })
 };
 
+
+function getPrice(client, byteSize) {
+  let endpoint =`price/${byteSize}`;
+
+  return client.api.get(endpoint)
+    .then(response => {
+      console.log(response)
+      return response.data;
+    });
+}
+
 async function dispatchTX(client, data, tags, wallet) {
-  const tx = await client.createTransaction({data: JSON.stringify(data)}, wallet);
+  let _data = JSON.stringify(data)
+
+  // const length = client.utils.stringToBuffer(_data).byteLength;
+  // let reward = await getPrice(client, length);
+  // console.log(reward * 1.4)
+  // const tx = await client.createTransaction({data: _data, reward: Math.round(reward * 1.4)}, wallet);
+  const tx = await client.createTransaction({data: _data}, wallet);
 
   Object.keys(tags).map(key => {
     tx.addTag(key, tags[key]);
