@@ -86,7 +86,7 @@ const getSiteDomain = (site_raw) => {
 const build_document = async (feed, entry, url) => {
   // TODO: add sentiment analisys
   let browser = !entry['dc:content'] && !entry['content:encoded'];
-  let lang = feed.language ? feed.language.split('-')[0].toUpperCase() : 'EN'
+  let lang = feed.language ? feed.language.split('-')[0].toUpperCase() : ''
   const {sentiment_rate, sentiment_tokens, sentiment_group} = await sentimentRate(entry.link || entry.url, browser, lang);
 
   let data = {
@@ -168,7 +168,7 @@ const buildTxData = (next) => {
     author: (item['dc:creator'] || item['creator'].trim() || '').trim(),
     description: (item['description'] || item['contentSnippet'] || '').trim(),
     categories: next.item.categories || [],
-    language: next.site.language ? next.site.language.split('-')[0].toUpperCase() : 'EN',
+    language: next.site.language ? next.site.language.split('-')[0].toUpperCase() : '',
     site: {
       description: next.site.description,
       title: next.site.title,
@@ -194,7 +194,7 @@ const buildTxTags = (next) => {
     'Publication-Time': next.pubDateObj.toISOString().slice(11,16),
     'Publication-Feed': next.feedUrl,
     'Publication-URL': next.item.guid || next.item.link,
-    'Publication-Lang': next.site.language ? next.site.language.split('-')[0].toUpperCase() : 'EN',
+    'Publication-Lang': next.site.language ? next.site.language.split('-')[0].toUpperCase() : '',
     'Publication-Author': (next.item['dc:creator'] || next.item['creator'] || '').trim(),
     'Site-Title': next.site.title,
     'Copyright': next.site.copyright !== undefined && next.site.copyright !== null && next.site.copyright !== '',
@@ -206,7 +206,7 @@ const buildTxTags = (next) => {
       next.item.categories.length > 0) {
     for (let i=0; i<5; i++) {
       if (next.item.categories[i] !== undefined && next.item.categories[i] !== null) {
-        tags[`Category_${i}`] = next.item.categories[i];
+        tags[`Category_${i}`] = next.item.categories[i].toLowerCase();
       }
     }
   }
@@ -235,7 +235,7 @@ const start_jobs = async () => {
       let synced = await isTxSynced(arweave, last.tx);
       console.log(synced.confirmed)
       console.log(`Transaction status: ${synced.status} - ${synced.confirmed}`);
-      if (synced.confirmed !== null && typeof  synced.confirmed === 'object' && synced.confirmed.number_of_confirmations > 6) {
+      if (synced.confirmed !== null && typeof  synced.confirmed === 'object' && synced.confirmed.number_of_confirmations > 1) {
         console.log(`Liberando: ${last.tx}`);
         collection.update({_id: last._id}, {$set: { published: true }})
       }
