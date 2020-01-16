@@ -1,15 +1,10 @@
 # Relevant
 
-Address: [Qq-wNSAIRjNpfQ2qLK6Deb34GsmsKM3orz0kLgYXUxY](https://viewblock.io/arweave/address/Qq-wNSAIRjNpfQ2qLK6Deb34GsmsKM3orz0kLgYXUxY)
+Address: [UNOS__VCYTkpd9bxvI5C8ATZw6qIc1SMYfA01v9rxIQ
+](https://viewblock.io/arweave/address/UNOS__VCYTkpd9bxvI5C8ATZw6qIc1SMYfA01v9rxIQ)
 
 It is a community permafeed aggregator powered by the Arweave, Hapi.js, and Vue with a twist of sentiment analysis.
 You can explore posts using dates, terms. One cool thing is that the site will be colored red if the results have negative sentiment, and blue if the feed has a positive sentiment, also include a grey for neutral sentiment but I never see it.
-
-![screenshots](/screenshots/feed_sentiment.png)
-
-Also on each card you have the rate sentiment based on its content.
-
-![screenshots](/screenshots/post.png)
 
 Why this is interesting, well maybe you need to make a decision based on the current state of the ecosystem or maybe do you need to understand why the cryptocurrentins are falling down today, one week ago or since one year ago. So having this information and making more visible the perception of the sentiment, will help to gain knowledge, take a decision, stay updated with news that the community considered **relevant** or just having fun.
 
@@ -48,10 +43,6 @@ As a side note, you can submit again your site to force harvest the feed.
 2. Wait patiently or just have fun with the current posts.
 
 
-## Opportunities to improve
-- Improve the query and include a recommendation system of news
-- Also integrate a system of likes/dislikes
-- Have a pre aproving process beacuse at this moment anyone can abuse the service
 
 
 ## License
