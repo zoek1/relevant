@@ -14,50 +14,50 @@ Each element of the feed will have the following attributes, let's divide the sp
 
 ### 1. Tags
 The tags have the following attributes:
-1. Feed-Name: *<String>* Relevant is the name of the feed.
-2. Feed-Version: *<String>* Relevant at this moment, is in version **1.0**. Posible elements to increment the version will be adding atrributes, changing the algorithm, etc.
-3. Sentiment-Rate: *<Integer>* The analisis have a range of -5 to 5 to measure the sentiment of the post, this data is rounded, to exact rate see the body estructure
-4. Sentiment-Group: *<String> Options(Pessimistic, Optimistic, Neutral)* Instead of using numbers is also posible query for post using groups where Pessimistic will be Sentiment-Rate less than -1, Optimistic when Sentiment-Rate greater than 1 and Neutral between -1,1.
-5. Publication-Date: *<String>* This is the date when the post was publised, has the format YYYY-MM-DD
-6. Publication-Time: *<String>* This is the time when the post was publised, has the format HH:MM
-7. Publication-Feed: *<String>* This is a URL of the feed that is queried every hour to retrieve the most recent posts
-8. URL: *<String>* Indicate the url of the current post
-9. Language: *<String>* Is the language that the post manages
-10. Publication-Author: *<String>* To know who is the mind or minds betwwen this resource
-11. Category-0: *<String>* Category of the post, this is provided by the authors
-12. Category-1: *<String>* Category of the post, this is provided by the authors
-13. Category-2: *<String>* Category of the post, this is provided by the authors
-14. Category-3: *<String>* Category of the post, this is provided by the authors
-16. Category-4: *<String>* Category of the post, this is provided by the authors
-16. Content-Type: *<String>* The format in which the data is stored, only ‘application/json’
-17. Copyright’: *<Boolean>* Indicates if the current corrent is published with copyrights
+1. Feed-Name: **String** Relevant is the name of the feed.
+2. Feed-Version: **String** Relevant at this moment, is in version **1.0**. Posible elements to increment the version will be adding atrributes, changing the algorithm, etc.
+3. Sentiment-Rate: **Integer** The analisis have a range of -5 to 5 to measure the sentiment of the post, this data is rounded, to exact rate see the body estructure
+4. Sentiment-Group: **String Options(Pessimistic, Optimistic, Neutral)** Instead of using numbers is also posible query for post using groups where Pessimistic will be Sentiment-Rate less than -1, Optimistic when Sentiment-Rate greater than 1 and Neutral between -1,1.
+5. Publication-Date: **String** This is the date when the post was publised, has the format YYYY-MM-DD
+6. Publication-Time: **String** This is the time when the post was publised, has the format HH:MM
+7. Publication-Feed: **String** This is a URL of the feed that is queried every hour to retrieve the most recent posts
+8. URL: **String** Indicate the url of the current post
+9. Language: **String** Is the language that the post manages
+10. Publication-Author: **String** To know who is the mind or minds betwwen this resource
+11. Category-0: **String** Category of the post, this is provided by the authors
+12. Category-1: **String** Category of the post, this is provided by the authors
+13. Category-2: **String** Category of the post, this is provided by the authors
+14. Category-3: **String** Category of the post, this is provided by the authors
+16. Category-4: **String** Category of the post, this is provided by the authors
+16. Content-Type: **String** The format in which the data is stored, only ‘application/json’
+17. Copyright’: **Boolean** Indicates if the current corrent is published with copyrights
 
 ### 2. Body Structure
 
-1. content: *<String>* This is the actual content of the post
-2. title: *<String>* Title provided in the metatags
-3. link: *<String>* Url to identify the resource
-4. guid: *<String>* Universal or permanent url to identify the resource
-5. publicationDate: *<String>* Full Publication date time ISO 8601
-6. author: *<String>* The author of the content
-7. site: *<Object>* To easy access the site data is encapsulated also in the body
-   - description: *<String>* The description of the site
-   - title": *<String>* The name of the site
-   - copyright: *<Boolean>* Indicates if the data provided by the site has copyrights
-8. readingStats: *<Object>* To busy people we provided the estimated time to read the content
-    - text: *<String>* The estimated time in human format
-    - minutes: *<Float>* Time in minutes
-    - time: *<Integer>* time in milliseconds
-    - words: *<Integer>* The number of words in the content
-9. sentiment: *<Object>* Sentiment rate with out modification
-   - rate: *<float>* Exact rate for sentiment analysis
-   - group: <String> Options(Pessimistic, Optimistic, Neutral)* Instead of using numbers is also posible query for post using groups where Pessimistic will be Sentiment-Rate less than -1, Optimistic when Sentiment-Rate greater than 1 and Neutral between -1,1.
-10. description: *<String>* Meta description of the post
-11. categories: *<Array[String]>* Full array of categories
-9. media: *<Object>* If the post have a thumbanail or image, this describe such element
-  - url: *<String>* URL of the image
-  - length: *<Integer>* Length in bytes of the image
-  - type: *<String>* Content Type of the image
+1. content: **String** This is the actual content of the post
+2. title: **String** Title provided in the metatags
+3. link: **String** Url to identify the resource
+4. guid: **String** Universal or permanent url to identify the resource
+5. publicationDate: **String** Full Publication date time ISO 8601
+6. author: **String** The author of the content
+7. site: **Object** To easy access the site data is encapsulated also in the body
+   - description: **String** The description of the site
+   - title": **String** The name of the site
+   - copyright: **Boolean** Indicates if the data provided by the site has copyrights
+8. readingStats: **Object** To busy people we provided the estimated time to read the content
+    - text: **String** The estimated time in human format
+    - minutes: **Float** Time in minutes
+    - time: **Integer** time in milliseconds
+    - words: **Integer** The number of words in the content
+9. sentiment: **Object** Sentiment rate with out modification
+   - rate: **Float** Exact rate for sentiment analysis
+   - group: **String Options(Pessimistic, Optimistic, Neutral)** Instead of using numbers is also posible query for post using groups where Pessimistic will be Sentiment-Rate less than -1, Optimistic when Sentiment-Rate greater than 1 and Neutral between -1,1.
+10. description: **String** Meta description of the post
+11. categories: **Array[String]** Full array of categories
+9. media: **Object** If the post have a thumbanail or image, this describe such element
+  - url: **String** URL of the image
+  - length: **Integer** Length in bytes of the image
+  - type: **String** Content Type of the image
   
 
 ## Examples
