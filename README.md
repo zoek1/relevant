@@ -194,43 +194,44 @@ As a side note, you can submit again your site to force harvest the feed.
 
 2. Wait patiently or just have fun with the current posts.
 
+![screenshots](screenshots/feed_sentiment.png)
 
-The instance have already this feeds:
+The current instance have already this feeds but could take a while that each site listed here take at least one post published:
 
-https://www.coindesk.com/feed
-https://cointelegraph.com/rss
-https://toshitimes.com/feed/
-https://www.newsbtc.com/feed/
-https://coinidol.com/rss2/
-https://cryptobriefing.com/feed/
-https://btcmanager.com/feed/
-https://dailyhodl.com/feed/
-https://www.theblockcrypto.com/rss.xml
-https://www.cryptoglobe.com/latest/feed/
-https://www.coinspeaker.com/feed/
-https://insidebitcoins.com/feed
-http://dippli.com/feed/
-https://www.btcwires.com/feed/
-https://www.the-blockchain.com/feed/
-https://coinfrenzy.io/feed/
+1. https://www.coindesk.com/feed
+2. https://cointelegraph.com/rss
+3. https://toshitimes.com/feed/
+4. https://www.newsbtc.com/feed/
+5. https://coinidol.com/rss2/
+5. https://cryptobriefing.com/feed/
+6. https://btcmanager.com/feed/
+7. https://dailyhodl.com/feed/
+8. https://www.theblockcrypto.com/rss.xml
+9. https://www.cryptoglobe.com/latest/feed/
+10. https://www.coinspeaker.com/feed/
+11. https://insidebitcoins.com/feed
+12. http://dippli.com/feed/
+13. https://www.btcwires.com/feed/
+14. https://www.the-blockchain.com/feed/
+15. https://coinfrenzy.io/feed/
 
 Spanish
-https://www.diariobitcoin.com/index.php/feed
-https://es.cointelegraph.com/rss
-https://www.criptonoticias.com/feed/
-https://observatorioblockchain.com/feed/
-https://cryptomagazine.co/feed/
-https://criptotendencia.com/feed/
+1. https://www.diariobitcoin.com/index.php/feed
+2. https://es.cointelegraph.com/rss
+3. https://www.criptonoticias.com/feed/
+4. https://observatorioblockchain.com/feed/
+5. https://cryptomagazine.co/feed/
+6. https://criptotendencia.com/feed/
 
 Italian
-https://it.cointelegraph.com/rss
-https://it.coinidol.com/rssshort/
-https://it.cryptonews.com/news/feed
+1. https://it.cointelegraph.com/rss
+2. https://it.coinidol.com/rssshort/
+3. https://it.cryptonews.com/news/feed
 
 French
-https://cryptonaute.fr/feed/
-https://fr.cryptonews.com/news/feed
-https://blockchainfrance.net/feed/
+1. https://cryptonaute.fr/feed/
+2. https://fr.cryptonews.com/news/feed
+3. https://blockchainfrance.net/feed/
 
 ## License
 See [LICENSE](/LICENSE)
