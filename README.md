@@ -195,7 +195,42 @@ As a side note, you can submit again your site to force harvest the feed.
 2. Wait patiently or just have fun with the current posts.
 
 
+The instance have already this feeds:
 
+https://www.coindesk.com/feed
+https://cointelegraph.com/rss
+https://toshitimes.com/feed/
+https://www.newsbtc.com/feed/
+https://coinidol.com/rss2/
+https://cryptobriefing.com/feed/
+https://btcmanager.com/feed/
+https://dailyhodl.com/feed/
+https://www.theblockcrypto.com/rss.xml
+https://www.cryptoglobe.com/latest/feed/
+https://www.coinspeaker.com/feed/
+https://insidebitcoins.com/feed
+http://dippli.com/feed/
+https://www.btcwires.com/feed/
+https://www.the-blockchain.com/feed/
+https://coinfrenzy.io/feed/
+
+Spanish
+https://www.diariobitcoin.com/index.php/feed
+https://es.cointelegraph.com/rss
+https://www.criptonoticias.com/feed/
+https://observatorioblockchain.com/feed/
+https://cryptomagazine.co/feed/
+https://criptotendencia.com/feed/
+
+Italian
+https://it.cointelegraph.com/rss
+https://it.coinidol.com/rssshort/
+https://it.cryptonews.com/news/feed
+
+French
+https://cryptonaute.fr/feed/
+https://fr.cryptonews.com/news/feed
+https://blockchainfrance.net/feed/
 
 ## License
 See [LICENSE](/LICENSE)
