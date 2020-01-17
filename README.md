@@ -97,7 +97,7 @@ This will produce an out similat to this:
 ### 2. Little time to read
 Also if you have little time to read, lets choose posts with an estimated time of one minute:
 
-```
+```graphql
 query {
   transactions(tags: [
     {name: "Feed-Name", value: "Relevant"}, 
@@ -148,8 +148,18 @@ query {
 
 ```
 
+## 4. What the people says when the the bitcoin, eth, and other crypto increase the its value
 
+Since January 13th, 2019 to today January 17th, 2019 the value of BTC and ETH has increase its value, so what the people says when all begins:
 
+```graphql
+query {
+  neutral: transactions(tags: [
+    {name: "Feed-Name", value: "Relevant"}, 
+    {name: "Publication-Date", value: "2020-01-13"},
+  ]) { id, tags { name, value}},
+}
+```
 
 ## Install dependencies
 
