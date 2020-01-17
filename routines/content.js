@@ -13,13 +13,15 @@ function executor() {
 
 async function getContentFromBrowser(site){
   // based on this snippet https://gist.github.com/MrOrz/fb48f27f0f21846d0df521728fda19ce
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
   const page = await browser.newPage();
+  page.setDefaultNavigationTimeout(20000);
 
   try {
     await page.goto(site);
   } catch(e) {
-    console.error(e);
+    console.log(`Site error ${site}`);	  
+    browser.close();
     return null;
   }
 

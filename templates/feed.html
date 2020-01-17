@@ -96,7 +96,7 @@
     </div>
 
     <div class="md-layout container md-alignment-top-space-around">
-        <entry v-for="tx in txs.slice(0, 26)" v-bind:rate="setRate" v-bind:query="setQuery" v-bind:key="tx" v-bind:tx="tx"></entry>
+        <entry v-for="tx in txs.slice(0, 27)" v-bind:rate="setRate" v-bind:query="setQuery" v-bind:key="tx" v-bind:tx="tx"></entry>
     </div>
 
     <!-- Your code here -->
@@ -145,13 +145,14 @@
       arweave.transactions.get(this.tx).then(transaction => {
         console.log(transaction.get('signature'));
         self.content = JSON.parse(transaction.get('data', {decode: true, string: true}));
-        self.headers = transaction.get('tags').reduce((obj, tag) => {
+        
+	      
+        self.localRate = self.content.sentiment.rate
+        this.rate(self.content.sentiment.rate);
+        console.log(self.content.sentiment.rate);
+	self.headers = transaction.get('tags').reduce((obj, tag) => {
           let key = tag.get('name', {decode: true, string: true});
           obj[key] = tag.get('value', {decode: true, string: true});
-          if (key === 'sentiment_rate') {
-            this.localRate = obj[key];
-            this.rate(this.localRate);
-          }
           return obj;
         }, {});
       });
@@ -161,16 +162,16 @@
       '        <md-card-header-text>\n' +
       '          <div class="md-title">{{content.title }}</div>\n' +
       '            <i v-if="localRate !== null"><md-icon>{{ this.localRate > 0 ? "mood" : this.localRate < 0 ? "mood_bad" : "flag"  }}</md-icon> {{(((localRate) * 10) / .5 ).toFixed(2)}}% sentiment rate</i>\n' +
-      '          <div class="md-subhead">{{content["dc:creator"]}}</div>\n' +
-      '          <i class="md-subhead" @click="() => query(headers.date)">{{headers.date}}</i>\n' +
+      '          <div class="md-subhead">{{content.author}}</div>\n' +
+	    '          <i class="md-subhead" @click="() => query(headers[\'Publication-Date\'])">{{headers[\'Publication-Date\']}}</i>\n' +
       '        <md-divider v-bind:style="\'height: 2px; margin-top: 5px; background-color: \'+sentiment"></md-divider>\n' +
       '        </md-card-header-text>\n' +
       '      </md-card-header>\n' +
-      '      <md-card-media v-if="content.enclosure">\n' +
-      '        <img v-bind:src="content.enclosure.url">\n' +
+      '      <md-card-media v-if="content.media">\n' +
+      '        <img v-bind:src="content.media.url">\n' +
       '      </md-card-media>' +
       '      <md-card-content>\n' +
-      '        {{content.description || content.contentSnippet}}\n' +
+      '        {{content.description}}\n' +
       '        <md-chip md-clickable v-on:click.native="() => query(headers.category_0)" class="chip" v-if="headers.category_0">{{headers.category_0}}</md-chip>\n' +
       '        <md-chip md-clickable v-on:click.native="() => query(headers.category_1)"  class="chip" v-if="headers.category_1">{{headers.category_1}}</md-chip>\n' +
       '        <md-chip md-clickable v-on:click.native="() => query(headers.category_2)"  class="chip" v-if="headers.category_2">{{headers.category_2}}</md-chip>\n' +
@@ -183,15 +184,15 @@
       '            <a v-bind:href="\'https://viewblock.io/arweave/tx/\' + tx"><md-button><md-icon>layers</md-icon></md-button></a>\n' +
       '          </div><div>' +
       '        <md-button><a :href="content.link"><md-icon>link</md-icon> Read now!</a></md-button>\n' +
-      '            <md-card-expand-trigger v-if="content.content || content[\'content:encoded\']">\n' +
+      '            <md-card-expand-trigger v-if="content.content">\n' +
       '            <md-button class="md-icon-button">\n' +
       '              <md-icon>keyboard_arrow_down</md-icon>\n' +
       '            </md-button> Preview\n' +
       '          </md-card-expand-trigger></div>' +
       '      </md-card-actions>\n' +
       '      <md-card-expand-content>\n' +
-      '          <md-card-content v-if="content.content || content[\'content:encoded\']">\n' +
-      '            <div v-html="content.content ||content[\'content:encoded\']">{{content.content || content[\'content:encoded\']}}</div>' +
+      '          <md-card-content v-if="content.content">\n' +
+      '            <div v-html="content.content">{{content.content}}</div>' +
       '          </md-card-content>\n' +
       '      </md-card-expand-content>      ' +
       '      </md-card-expand>\n' +
@@ -213,17 +214,9 @@
     }),
     async mounted ()  {
       this.txs = await arweave.arql({
-        op: "and",
-        expr1: {
           op: "equals",
           expr1: "from",
-          expr2: "Qq-wNSAIRjNpfQ2qLK6Deb34GsmsKM3orz0kLgYXUxY"
-        },
-        expr2: {
-            op: "equals",
-            expr1: "env",
-            expr2: "production"
-        }
+	  expr2: "<%= address %>"
       });
 
       console.log(this.txs);
@@ -293,69 +286,60 @@
             expr1: {
               op: "equals",
               expr1: "from",
-              expr2: "Qq-wNSAIRjNpfQ2qLK6Deb34GsmsKM3orz0kLgYXUxY"
+	      expr2: "<%= address %>"
             },
-            expr2: {
-              op: "and",
-              expr1: {
-                op: "equals",
-                expr1: "env",
-                expr2: "production"
-              },
               expr2: {
                 op: "or",
                 expr1: {
                   op: "equals",
-                  expr1: 'url',
+                  expr1: 'Publication-Feed',
                   expr2: this.form.feed,
                 },
                 expr2: {
                   'op': 'or',
                   expr1: {
                     op: 'equals',
-                    expr1: 'date',
+                    expr1: 'Publication-Date',
                     expr2: this.form.feed
                   },
                   expr2: {
                     op: "or",
                     expr1: {
                       op: "equals",
-                      expr1: 'category_0',
+                      expr1: 'Category_0',
                       expr2: this.form.feed,
                     },
                     expr2: {
                       'op': 'or',
                       expr1: {
                         op: 'equals',
-                        expr1: 'category_1',
+                        expr1: 'Category_1',
                         expr2: this.form.feed
                       },
                       expr2: {
                         op: "or",
                         expr1: {
                           op: "equals",
-                          expr1: 'category_2',
+                          expr1: 'Category_2',
                           expr2: this.form.feed,
                         },
                         expr2: {
                           'op': 'or',
                           expr1: {
                             op: 'equals',
-                            expr1: 'category_3',
+                            expr1: 'Category_3',
                             expr2: this.form.feed
                           },
                           expr2: {
                             op: 'equals',
-                            expr1: 'category_4',
+                            expr1: 'Category_4',
                             expr2: this.form.feed
                           }
                         }
                       }
                     }
-                      }
+                  }
                 }
-              }
-
             }
           });
 
@@ -364,17 +348,9 @@
         else {
           this.sentimentRate = 'reset';
           this.txs = await arweave.arql({
-            op: "and",
-            expr1: {
               op: "equals",
               expr1: "from",
-              expr2: "Qq-wNSAIRjNpfQ2qLK6Deb34GsmsKM3orz0kLgYXUxY"
-            },
-            expr2: {
-              op: "equals",
-              expr1: "env",
-              expr2: "production"
-            }
+              expr2: "<%= address %>"
           });
           self.sending = false
         }

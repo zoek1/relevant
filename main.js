@@ -65,6 +65,10 @@ const APP_VERSION = '1.0';
 const HOURLY = '0 0 */1 * * *';
 const MINUTES = '0 */3 * * * *';
 
+function timeout(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 const getSiteDomain = (site_raw) => {
   console.log(site_raw)
   let site = parse(site_raw);
@@ -141,31 +145,37 @@ const harvestSite = async (site) => {
       console.log(`Link: ${feed.link}`);
       console.log(`Items: ${feed.items.length}`);
 
-      collection.find({'feedUrl': site.feedUrl}).sort({pubDateObj: -1}).limit(1).toArray(async (err, last) => {
-        let entries = last.length === 1 ? getEntriesSince(feed, last[0].pubDateObj) : feed.items;
+      await Promise.all([collection.find({'feedUrl': site.feedUrl}).sort({pubDateObj: -1}).limit(1).toArray(async (err, last) => {
+	if (last[0]) console.log(last[0].pubDateObj);      
+       let entries = last.length === 1 ? getEntriesSince(feed, last[0].pubDateObj) : feed.items;
         for (let index = 0; index < entries.length; index++) {
           let e = entries[index];
-          console.log(`[${e.pubDate}] ${e.title} `);
-          await collection.insertOne(await build_document(feed, e, site.feedUrl))
-
+          console.log(`${feed.link}  ${index}. [${e.pubDate}] ${e.title} `);
+          try{           
+            let doc = await build_document(feed, e, site.feedUrl)
+             await collection.insertOne(doc)
+	    // let _timeout = await timeout(5000)
+	  } catch(e) { console.log(e); }
         }
         return entries.length;
-      });
+        }), timeout(6000)
+      ]);
     } catch (e) {
+      console.log(`Failed parsing ${site.feedUrl}`)
       console.log(e);
       return null;
     }
 };
 
 const buildTxData = (next) => {
-  console.log(next.item);
+  // console.log(next.item);
   let item = next.item;
   return {
     title: item.title,
     link: item.link,
     guid: item.guid,
     publicationDate: item['isoDate'],
-    author: (item['dc:creator'] || item['creator'].trim() || '').trim(),
+    author: (item['dc:creator'] || item['creator'] || '').trim(),
     description: (item['description'] || item['contentSnippet'] || '').trim(),
     categories: next.item.categories || [],
     language: next.site.language ? next.site.language.split('-')[0].toUpperCase() : '',
@@ -220,24 +230,46 @@ const start_jobs = async () => {
   // Retrieve new entries
   let retrieveEntries = new CronJob(HOURLY, function() {
     console.log(`== Running entries retriever!`);
-    db.collection('sites').find({}).toArray((err, sites) => {
-      sites.forEach( (site) => { harvestSite(site) })
+    db.collection('sites').find({}).toArray(async (err, sites) => {
+     for(let index = 0; index < sites.length; index++) {
+       console.log(`== Start harvesting ${sites[index].feedUrl}`)	     
+       let site = await harvestSite(sites[index])
+       console.log(`== End harvesting ${sites[index].feedUrl}`)	     
+     }
     })
   });
 
   // Deploy next entry
-  let deployEntries = new CronJob(MINUTES, async function(){
+  let deploy = async function() {
     let collection = db.collection('entries');
     console.log(`== Check sincronization`);
     let last = await collection.findOne({published: false, tx: {$ne: null}});
     if (last !== undefined && last !== null && last !== '') {
       console.log(`== Active Tx: _id: ${last._id} td: ${last.tx}`);
-      let synced = await isTxSynced(arweave, last.tx);
+      let synced;
+      try {	    
+        synced = await isTxSynced(arweave, last.tx);
+      } catch(e) { return e; }
       console.log(synced.confirmed)
       console.log(`Transaction status: ${synced.status} - ${synced.confirmed}`);
-      if (synced.confirmed !== null && typeof  synced.confirmed === 'object' && synced.confirmed.number_of_confirmations > 1) {
+      if (synced.confirmed !== null && typeof  synced.confirmed === 'object' && synced.confirmed.number_of_confirmations > 3) {
         console.log(`Liberando: ${last.tx}`);
         collection.update({_id: last._id}, {$set: { published: true }})
+	deploy();
+      }
+      if (synced.status == 404) {
+	if (last.errors == undefined || last.errors == null ) {
+	  console.log('-- Estableciendo contador')	
+	  await collection.update({_id: last._id}, {$set: { errors: 0 }})
+	}
+	if (last.errors >= 12) {
+	  console.log('-- Reintentado contador')
+	  await collection.update({_id: last._id}, {$set: { errors: 0, tx: null}})
+	  deploy()
+	} else {
+	  console.error(`-- Incrementando contador de error ${last.errors}`)	
+          await collection.update({_id: last._id}, {$inc: { errors: 1 }})
+	}
       }
     } else {
       console.log(`== Select next entry`);
@@ -247,19 +279,29 @@ const start_jobs = async () => {
 	      return;
       }
       console.log(next)
-      console.log(`${next._id} : ${next.item.title}`);
+      // console.log(`${next._id} : ${next.item.title}`);
+      try {
+        res = await dispatchTX(arweave, buildTxData(next), buildTxTags(next), wallet)
+        // console.log(response.data)
+      } catch(e) {
+	console.log(e)
+        console.error(`!! Failed ${next._id} : ${next.item.title}`);
+        return;
+      }
 
-      let {response, tx} = await dispatchTX(arweave, buildTxData(next), buildTxTags(next), wallet)
-      console.log(response.data)
+      let {response, tx} = res;
       if (response.status === 200) {
         console.log(`New pending transaction: ${tx.get('id')}`);
         collection.update({_id: next._id}, {$set: {'tx': tx.get('id'), published: false }})
       }
     }
-  });
+  }
+
+  let deployEntries = new CronJob(MINUTES, deploy);
 
   retrieveEntries.start();
   deployEntries.start()
+
 };
 
 const init = async () => {
@@ -327,7 +369,7 @@ const init = async () => {
           } catch (e) {
             return Boom.badData('Sorry the site couldn\'t be parsed');
           }
-          const new_site = await sites.insertOne(dominsObj);
+          // const new_site = await sites.insertOne(dominsObj);
           return {
             status: 'ok',
             message: 'Site created correctly'
